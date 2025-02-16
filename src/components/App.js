@@ -18,6 +18,9 @@ function reducer(state, action) {
     case "dataReceived":
       return { ...state, products: action.payload, status: "ready" };
 
+    case "error":
+      return { ...state, status: "failed" };
+
     case "addToCart":
       const newItems = {
         ...action.payload,
@@ -122,10 +125,15 @@ function App() {
     function () {
       async function getProducts() {
         try {
-          const res = await fetch("http://localhost:8000/products");
+          // const res = await fetch("http://localhost:8000/products"); won't display when deployed
+          // because it is coming from json server so we need to manually run npm run server
+          // else the data won't be fetched
+          const res = await fetch("../data/data.json");
           const data = await res.json();
-          dispatch({ type: "dataReceived", payload: data });
+          console.log(data);
+          dispatch({ type: "dataReceived", payload: data.products });
         } catch (err) {
+          dispatch({ type: "error" });
           console.error(err);
         }
       }
@@ -156,6 +164,9 @@ function App() {
                     items={items}
                   />
                 ))}
+              {status === "failed" && (
+                <p>Error fetching data... Please reload the page</p>
+              )}
             </Main>
           </div>
           <Cart
